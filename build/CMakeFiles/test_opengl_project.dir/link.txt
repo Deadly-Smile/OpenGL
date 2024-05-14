@@ -1,0 +1,1 @@
+/usr/bin/g++ -g -rdynamic CMakeFiles/test_opengl_project.dir/src/main.cpp.o -o test_opengl_project  -lglfw 

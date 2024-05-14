@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/anik/Documents/Work/OpenGL/build",
+  "command": "/usr/bin/g++   -g -o CMakeFiles/test_opengl_project.dir/src/main.cpp.o -c /home/anik/Documents/Work/OpenGL/src/main.cpp",
+  "file": "/home/anik/Documents/Work/OpenGL/src/main.cpp"
+}
+]

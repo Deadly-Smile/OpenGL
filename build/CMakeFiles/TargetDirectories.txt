@@ -1,0 +1,3 @@
+/home/anik/Documents/Work/OpenGL/build/CMakeFiles/test_opengl_project.dir
+/home/anik/Documents/Work/OpenGL/build/CMakeFiles/edit_cache.dir
+/home/anik/Documents/Work/OpenGL/build/CMakeFiles/rebuild_cache.dir
