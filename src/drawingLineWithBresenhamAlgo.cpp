@@ -1,4 +1,5 @@
 #include <GL/glut.h>
+#include <iostream>
 
 void drawPixel(float x, float y)
 {
@@ -13,6 +14,8 @@ void drawLine(float x1, float y1, float x2, float y2)
     int dy = abs(y2 - y1);
     int dx1 = x2 - x1;
     int dy1 = y2 - y1;
+
+    std::cout << x1 << " " << y1 << " ";
 
     int x{0}, y{0}, xEnd{0}, yEnd{0}, xIncrement{0}, yIncrement{0};
     float m = abs(dy / dx);
@@ -109,8 +112,8 @@ void display()
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glColor3f(1.0, 0.0, 1.0);
-
-    drawLine(122, 100, 2, 200);
+    // glLineWidth(15.0);
+    drawLine(20, 20, 90, 5);
 
     glFlush();
 }
