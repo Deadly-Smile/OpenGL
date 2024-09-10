@@ -9,7 +9,92 @@ void drawPixel(float x, float y)
     glEnd();
 }
 
-void drawLine(float x1, float y1, float x2, float y2)
+void dDLWithOutSlopDrawLine(float x1, float y1, float x2, float y2)
+{
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+    float steps = abs(dx) >= abs(dy) ? abs(dx) : abs(dy);
+    float xIncrement = dx / steps;
+    float yIncrement = dy / steps;
+    float x = x1;
+    float y = y1;
+    for (int i = 0; i <= steps; i++)
+    {
+        drawPixel(x, y);
+        x += xIncrement;
+        y += yIncrement;
+    }
+}
+
+void dDLWithSlopDrawLine(float x1, float y1, float x2, float y2)
+{
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+    int steps = abs(dx) > abs(dy) ? abs(dx) : abs(dy);
+
+    float m = dy / dx;
+    float mP = abs(m);
+
+    float xIncrement = 0;
+    float yIncrement = 0;
+
+    if (dx == 0)
+    {
+        yIncrement += 1;
+    }
+    else if (m >= 0 && m <= 1 && dx >= 0 && dy >= 0)
+    {
+        xIncrement = 1;
+        yIncrement = mP;
+    }
+    else if (m >= 0 && m <= 1 && dx < 0 && dy < 0)
+    {
+        xIncrement = -1;
+        yIncrement = -mP;
+    }
+    else if (m >= -1 && m < 0 && dx > 0 && dy < 0)
+    {
+        xIncrement = 1;
+        yIncrement = -mP;
+    }
+    else if (m >= -1 && m < 0 && dx < 0 && dy > 0)
+    {
+        xIncrement = -1;
+        yIncrement = mP;
+    }
+    else if (m > 1 && dx > 0 && dy > 0)
+    {
+        xIncrement = 1 / mP;
+        yIncrement = 1;
+    }
+    else if (m > 1 && dx < 0 && dy < 0)
+    {
+        xIncrement = -(1 / mP);
+        yIncrement = -1;
+    }
+    else if (m < -1 && dx > 0 && dy < 0)
+    {
+        xIncrement = 1 / mP;
+        yIncrement = -1;
+    }
+    else if (m < -1 && dx < 0 && dy > 0)
+    {
+        xIncrement = -(1 / mP);
+        yIncrement = 1;
+    }
+
+    float x = x1;
+    float y = y1;
+
+    for (int i = 0; i <= steps; i++)
+    {
+        drawPixel(x, y);
+        x += xIncrement;
+        y += yIncrement;
+    }
+}
+
+void bresenhamDrawLine(float x1, float y1, float x2, float y2)
 {
     int dx = abs(x2 - x1);
     int dy = abs(y2 - y1);
@@ -144,7 +229,19 @@ void display()
     glClear(GL_COLOR_BUFFER_BIT);
     glColor3f(1.0, 0.0, 1.0);
     glPointSize(1.5);
-    drawMidPointCircle(250, 300, 30);
+    int x1 = 20, y1 = 20, x2 = 90, y2 = 5;
+    int x{300}, y{250}, r{50};
+
+    // std::cout << "Enter x1, y1, x2, y2: ";
+    // std::cin >> x1 >> y1 >> x2 >> y2;
+    std::cout << "Enter x, y, r: ";
+    std::cin >> x >> y >> r;
+
+    drawMidPointCircle(x, y, r);
+
+    bresenhamDrawLine(20, 20, 90, 5);
+    dDLWithOutSlopDrawLine(20, 20, 90, 5);
+    dDLWithSlopDrawLine(20, 20, 90, 5);
 
     glFlush();
 }
