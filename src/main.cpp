@@ -234,14 +234,14 @@ void display()
 
     // std::cout << "Enter x1, y1, x2, y2: ";
     // std::cin >> x1 >> y1 >> x2 >> y2;
-    std::cout << "Enter x, y, r: ";
-    std::cin >> x >> y >> r;
+    // std::cout << "Enter x, y, r: ";
+    // std::cin >> x >> y >> r;
 
     drawMidPointCircle(x, y, r);
 
     bresenhamDrawLine(20, 20, 90, 5);
     dDLWithOutSlopDrawLine(20, 20, 90, 5);
-    dDLWithSlopDrawLine(20, 20, 90, 5);
+    dDLWithSlopDrawLine(10, 10, 40, 5);
 
     glFlush();
 }
@@ -250,7 +250,7 @@ void init()
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0.0, 500.0, 0.0, 500.0, -1.0, 1.0);
+    glOrtho(0.0, 50, 0.0, 50, -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
 }
 
