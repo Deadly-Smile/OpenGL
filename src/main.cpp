@@ -1,127 +1,101 @@
 #include <GL/glut.h>
 #include <iostream>
-#include <vector>
 
-using namespace std;
+// Define the clipping window bounds
+double xmin = -100, ymin = -100, xmax = 100, ymax = 100;
 
-// Define the clipping window (20, 80, 20, 80)
-double xmin = 20, ymin = 20, xmax = 80, ymax = 80;
-
-struct Point
+// Region codes for Cohen-Sutherland
+enum RegionCode
 {
-    double x, y;
+    INSIDE = 0, // 0000
+    LEFT = 1,   // 0001
+    RIGHT = 2,  // 0010
+    BOTTOM = 4, // 0100
+    TOP = 8     // 1000
 };
 
-// Store the polygon's vertices as input by the user
-vector<Point> polygon;
-int numVertices; // Number of sides/vertices of the polygon
-
-// Function to clip against a single edge
-vector<Point> clipEdge(const vector<Point> &vertices, double edgeX, double edgeY, bool isVertical, bool isLess)
+// Function to compute the region code for a point
+int computeCode(double x, double y)
 {
-    vector<Point> clippedPolygon;
-    int n = vertices.size();
+    int code = INSIDE;
+    if (x < xmin)
+        code |= LEFT;
+    else if (x > xmax)
+        code |= RIGHT;
+    if (y < ymin)
+        code |= BOTTOM;
+    else if (y > ymax)
+        code |= TOP;
+    return code;
+}
 
-    for (int i = 0; i < n; i++)
+// Function to find the intersection of a line with a boundary
+void findIntersection(double &x, double &y, double x1, double y1, double x2, double y2, int codeOut)
+{
+    if (codeOut & TOP)
     {
-        Point current = vertices[i];
-        Point next = vertices[(i + 1) % n]; // Next vertex, wrapping around
+        y = ymax;
+        x = x1 + (x2 - x1) * (ymax - y1) / (y2 - y1);
+    }
+    else if (codeOut & BOTTOM)
+    {
+        y = ymin;
+        x = x1 + (x2 - x1) * (ymin - y1) / (y2 - y1);
+    }
+    else if (codeOut & RIGHT)
+    {
+        x = xmax;
+        y = y1 + (y2 - y1) * (xmax - x1) / (x2 - x1);
+    }
+    else if (codeOut & LEFT)
+    {
+        x = xmin;
+        y = y1 + (y2 - y1) * (xmin - x1) / (x2 - x1);
+    }
+}
 
-        // Determine if the current and next points are inside the edge
-        bool insideCurrent, insideNext;
+// Cohen-Sutherland clipping algorithm
+void cohenSutherlandClip(double x1, double y1, double x2, double y2)
+{
+    int code1 = computeCode(x1, y1), code2 = computeCode(x2, y2);
+    bool accept = false;
 
-        if (isVertical)
-        {
-            if (isLess)
-            {
-                insideCurrent = current.x >= edgeX;
-                insideNext = next.x >= edgeX;
-            }
-            else
-            {
-                insideCurrent = current.x <= edgeX;
-                insideNext = next.x <= edgeX;
-            }
+    // Draw the full line in red (original line)
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex2d(x1, y1);
+    glVertex2d(x2, y2);
+    glEnd();
+
+    while (true)
+    {
+        if ((code1 | code2) == 0)
+        { // Both inside
+            accept = true;
+            break;
+        }
+        else if (code1 & code2)
+        { // Both outside in the same region
+            break;
         }
         else
         {
-            if (isLess)
-            {
-                insideCurrent = current.y >= edgeY;
-                insideNext = next.y >= edgeY;
-            }
-            else
-            {
-                insideCurrent = current.y <= edgeY;
-                insideNext = next.y <= edgeY;
-            }
-        }
-
-        // Add the next point to the clippedPolygon
-        if (insideNext)
-        {
-            if (!insideCurrent)
-            { // Current point is outside, next point is inside
-                // Find intersection point and add it
-                Point intersection;
-                if (isVertical)
-                { // Vertical line
-                    intersection.x = edgeX;
-                    intersection.y = current.y + (next.y - current.y) * (edgeX - current.x) / (next.x - current.x);
-                }
-                else
-                { // Horizontal line
-                    intersection.y = edgeY;
-                    intersection.x = current.x + (next.x - current.x) * (edgeY - current.y) / (next.y - current.y);
-                }
-                clippedPolygon.push_back(intersection);
-            }
-            clippedPolygon.push_back(next); // Add the next point
-        }
-        else if (insideCurrent)
-        { // Current point is inside, next point is outside
-            // Find intersection point and add it
-            Point intersection;
-            if (isVertical)
-            { // Vertical line
-                intersection.x = edgeX;
-                intersection.y = current.y + (next.y - current.y) * (edgeX - current.x) / (next.x - current.x);
-            }
-            else
-            { // Horizontal line
-                intersection.y = edgeY;
-                intersection.x = current.x + (next.x - current.x) * (edgeY - current.y) / (next.y - current.y);
-            }
-            clippedPolygon.push_back(intersection);
+            double x, y;
+            int codeOut = code1 ? code1 : code2;
+            findIntersection(x, y, x1, y1, x2, y2, codeOut);
+            (codeOut == code1) ? (x1 = x, y1 = y, code1 = computeCode(x1, y1)) : (x2 = x, y2 = y, code2 = computeCode(x2, y2));
         }
     }
-    return clippedPolygon;
-}
 
-// Sutherland-Hodgman clipping algorithm
-vector<Point> sutherlandHodgmanClip(const vector<Point> &polygon)
-{
-    vector<Point> clippedPolygon = polygon;
-
-    // Clip against the four edges of the clipping window
-    clippedPolygon = clipEdge(clippedPolygon, xmin, ymin, true, true);   // Clip against left edge
-    clippedPolygon = clipEdge(clippedPolygon, xmax, ymax, true, false);  // Clip against right edge
-    clippedPolygon = clipEdge(clippedPolygon, ymin, xmin, false, true);  // Clip against bottom edge
-    clippedPolygon = clipEdge(clippedPolygon, ymax, xmax, false, false); // Clip against top edge
-
-    return clippedPolygon;
-}
-
-// Function to draw the polygon
-void drawPolygon(const vector<Point> &vertices, float r, float g, float b)
-{
-    glColor3f(r, g, b); // Set color
-    glBegin(GL_LINE_LOOP);
-    for (const auto &vertex : vertices)
+    // Draw the clipped part of the line in green
+    if (accept)
     {
-        glVertex2d(vertex.x, vertex.y);
+        glColor3f(0.0, 1.0, 0.0); // Green
+        glBegin(GL_LINES);
+        glVertex2d(x1, y1);
+        glVertex2d(x2, y2);
+        glEnd();
     }
-    glEnd();
 }
 
 void display()
@@ -129,12 +103,11 @@ void display()
     glClear(GL_COLOR_BUFFER_BIT);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    // Set up the coordinate system using glOrtho
     glOrtho(-200, 200, -200, 200, -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
 
-    // Draw the clipping rectangle (20, 20, 80, 80)
-    glColor3f(0.0, 0.0, 1.0); // Blue
+    // Draw the clipping window in blue
+    glColor3f(0.0, 0.0, 1.0);
     glBegin(GL_LINE_LOOP);
     glVertex2d(xmin, ymin);
     glVertex2d(xmax, ymin);
@@ -142,35 +115,21 @@ void display()
     glVertex2d(xmin, ymax);
     glEnd();
 
-    // Draw the original polygon in green
-    drawPolygon(polygon, 0.0, 1.0, 0.0);
-
-    // Perform clipping and draw the clipped polygon in red
-    vector<Point> clippedPolygon = sutherlandHodgmanClip(polygon);
-    drawPolygon(clippedPolygon, 1.0, 0.0, 0.0);
+    // Example lines to clip
+    float x1{-150}, y1{-150}, x2{150}, y2{150};
+    // std::cin >> x1 >> y1 >> x2 >> y2;
+    cohenSutherlandClip(x1, y1, x2, y2);
 
     glFlush();
 }
 
 int main(int argc, char **argv)
 {
-    // Take user input for the number of sides of the polygon
-    cout << "Enter the number of sides of the polygon: ";
-    cin >> numVertices;
-
-    // Take user input for the coordinates of each vertex of the polygon
-    polygon.resize(numVertices);
-    for (int i = 0; i < numVertices; ++i)
-    {
-        cout << "Enter coordinates for vertex " << i + 1 << " (x, y): ";
-        cin >> polygon[i].x >> polygon[i].y;
-    }
-
     // Initialize GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
     glutInitWindowSize(500, 500);
-    glutCreateWindow("Sutherland-Hodgman Polygon Clipping");
+    glutCreateWindow("Cohen-Sutherland Line Clipping");
 
     glClearColor(1.0, 1.0, 1.0, 1.0); // White background
     glutDisplayFunc(display);

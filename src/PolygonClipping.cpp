@@ -130,7 +130,7 @@ void display()
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     // Set up the coordinate system using glOrtho
-    glOrtho(-200, 200, -200, 200, -1.0, 1.0);
+    glOrtho(0, 100, 0, 100, -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
 
     // Draw the clipping rectangle (20, 20, 80, 80)
