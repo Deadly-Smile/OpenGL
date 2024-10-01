@@ -172,7 +172,7 @@ int main(int argc, char **argv)
     glutInitWindowSize(500, 500);
     glutCreateWindow("Sutherland-Hodgman Polygon Clipping");
 
-    glClearColor(1.0, 1.0, 1.0, 1.0); // White background
+    glClearColor(1.0, 1.0, 1.0, 1.0);
     glutDisplayFunc(display);
 
     glutMainLoop();

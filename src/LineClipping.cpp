@@ -116,8 +116,8 @@ void display()
     glEnd();
 
     // Example lines to clip
-    float x1{-150}, y1{-150}, x2{150}, y2{150};
-    // std::cin >> x1 >> y1 >> x2 >> y2;
+    float x1{-0}, y1{-150}, x2{150}, y2{150};
+    std::cin >> x1 >> y1 >> x2 >> y2;
     cohenSutherlandClip(x1, y1, x2, y2);
 
     glFlush();
